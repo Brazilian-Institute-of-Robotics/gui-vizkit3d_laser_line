@@ -3,8 +3,10 @@
 
 #include <boost/noncopyable.hpp>
 #include <vizkit3d/Vizkit3DPlugin.hpp>
-#include <osg/Geode>
 #include <base/samples/LaserScan.hpp>
+#include <osg/PositionAttitudeTransform>
+#include <osg/Geode>
+#include <osg/Geometry>
 
 namespace vizkit3d
 {
@@ -26,6 +28,8 @@ namespace vizkit3d
         virtual void updateDataIntern(base::samples::LaserScan const& plan);
         
     private:
+        osg::ref_ptr<osg::PositionAttitudeTransform> linePos;
+
         struct Data;
         Data* p;
     };

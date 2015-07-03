@@ -5,7 +5,6 @@ using namespace vizkit3d;
 
 struct LaserLine::Data {
     // Copy of the value given to updateDataIntern.
-    //
     // Making a copy is required because of how OSG works
     base::samples::LaserScan data;
 };
@@ -23,8 +22,6 @@ LaserLine::~LaserLine()
 
 osg::ref_ptr<osg::Node> LaserLine::createMainNode()
 {
-    // Geode is a common node used for vizkit3d plugins. It allows to display
-    // "arbitrary" geometries
     return new osg::Geode();
 }
 
@@ -37,7 +34,7 @@ void LaserLine::updateMainNode ( osg::Node* node )
 void LaserLine::updateDataIntern(base::samples::LaserScan const& value)
 {
     p->data = value;
-    std::cout << "got new sample data" << std::endl;
+//    std::cout << "got new sample data" << std::endl;
 }
 
 //Macro that makes this plugin loadable in ruby, this is optional.
