@@ -4,9 +4,10 @@
 #include <boost/noncopyable.hpp>
 #include <vizkit3d/Vizkit3DPlugin.hpp>
 #include <base/samples/LaserScan.hpp>
-#include <osg/PositionAttitudeTransform>
+#include <osg/Array>
 #include <osg/Geode>
 #include <osg/Geometry>
+#include <osg/LineWidth>
 
 namespace vizkit3d
 {
@@ -28,10 +29,27 @@ namespace vizkit3d
         virtual void updateDataIntern(base::samples::LaserScan const& plan);
         
     private:
-        osg::ref_ptr<osg::PositionAttitudeTransform> linePos;
 
         struct Data;
         Data* p;
+
+        /**
+         * Store the vertices used to draw the primitives
+         */
+        osg::ref_ptr<osg::Vec3Array> vertices;
+
+        /**
+         * Store the colors of the primitive
+         */
+        osg::ref_ptr<osg::Vec4Array> colors;
+
+        /**
+         * Used to draw a primitive (QUAD, TRIANGLE, LINE)
+         */
+        osg::ref_ptr<osg::Geometry> geometry;
+
+        osg::ref_ptr<osg::DrawArrays> primitiveSet;
+
     };
 }
 #endif
