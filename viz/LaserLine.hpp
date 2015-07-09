@@ -5,8 +5,10 @@
 #include <vizkit3d/Vizkit3DPlugin.hpp>
 #include <base/samples/LaserScan.hpp>
 #include <osg/Array>
+#include <osg/BlendFunc>
 #include <osg/Geode>
 #include <osg/Geometry>
+#include <osg/Hint>
 #include <osg/LineWidth>
 
 namespace vizkit3d
@@ -30,8 +32,8 @@ namespace vizkit3d
         
     private:
 
-        struct Data;
-        Data* p;
+        //laser scan data
+        base::samples::LaserScan data;
 
         /**
          * Store the vertices used to draw the primitives
@@ -48,6 +50,9 @@ namespace vizkit3d
          */
         osg::ref_ptr<osg::Geometry> geometry;
 
+        /**
+         * PrimitiveSet to set up the draw array
+         */
         osg::ref_ptr<osg::DrawArrays> primitiveSet;
 
     };

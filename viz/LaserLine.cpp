@@ -3,35 +3,47 @@
 
 using namespace vizkit3d;
 
-struct LaserLine::Data {
-    // Copy of the value given to updateDataIntern.
-    // Making a copy is required because of how OSG works
-    base::samples::LaserScan data;
-};
-
-
 LaserLine::LaserLine()
-    : p(new Data)
 {
+    vertices = new osg::Vec3Array();
+    colors = new ::osg::Vec4Array();
+    geometry = new osg::Geometry();
+    primitiveSet = new osg::DrawArrays();
 }
 
 LaserLine::~LaserLine()
 {
-    delete p;
 }
 
 osg::ref_ptr<osg::Node> LaserLine::createMainNode()
 {
-    geometry = new osg::Geometry();
+    /**
+     * set up the line style
+     */
+    geometry->getOrCreateStateSet()->setAttribute(new osg::LineWidth(3.5f), osg::StateAttribute::ON);
+    geometry->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+    geometry->getOrCreateStateSet()->setMode(GL_LINE_SMOOTH, osg::StateAttribute::ON);
+    geometry->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+    geometry->getOrCreateStateSet()->setMode(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
-    vertices = new osg::Vec3Array();
+    // Add a blend function.
+    osg::ref_ptr<osg::BlendFunc> blend ( new osg::BlendFunc ( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA ) );
+    geometry->getOrCreateStateSet()->setAttributeAndModes ( blend.get(), osg::StateAttribute::ON );
 
-    primitiveSet = new osg::DrawArrays();
+    // Set the hint.
+    osg::ref_ptr<osg::Hint> hint ( new osg::Hint ( GL_LINE_SMOOTH_HINT, GL_NICEST ) );
+    geometry->getOrCreateStateSet()->setAttributeAndModes ( hint.get(), osg::StateAttribute::ON );
 
-    colors = new ::osg::Vec4Array();
 
-    geometry->getOrCreateStateSet()->setAttribute(new osg::LineWidth(2.0f), osg::StateAttribute::ON);
+    /**
+     * add the primitive set to geometry
+     */
     geometry->addPrimitiveSet(primitiveSet);
+
+    /**
+     * set line colors
+     */
+    colors->push_back(osg::Vec4(0.1, 0.9, 0.1, 1.0));
 
     osg::ref_ptr<osg::Geode> geode(new osg::Geode());
     geode->addDrawable(geometry.get());
@@ -43,26 +55,47 @@ void LaserLine::updateMainNode ( osg::Node* node )
 {
     osg::Geode* geode = static_cast<osg::Geode*>(node);
 
-    std::vector<Eigen::Vector3d> points;
-    p->data.convertScanToPointCloud<Eigen::Vector3d>(points, Eigen::Affine3d::Identity(), false);
+    //laser scan depth values
+    std::vector<uint32_t> ranges = data.ranges;
+
+    double angle = data.start_angle; //start angle
+    double angleStep = data.angular_resolution; //angle step
+    double maxRange = data.maxRange / 1000.0; //convert millimeters to meters
 
     vertices->clear();
-    for (int i = 0; i < points.size(); i++) {
-        vertices->push_back(osg::Vec3(points[i][0], points[i][1], points[i][2]));
+    for (int i = 0; i < ranges.size()-1; i++) {
+
+        //get the max range point
+        Eigen::Vector3d limit = Eigen::Quaterniond(Eigen::AngleAxisd(angle + (i * angleStep), Eigen::Vector3d::UnitZ())) * Eigen::Vector3d(maxRange, 0, 0.0);
+
+        /**
+         * get the start and end line points
+         * compute the rotation using the angle
+         */
+        Eigen::Vector3d pt0 = Eigen::Quaterniond(Eigen::AngleAxisd(angle + (i * angleStep), Eigen::Vector3d::UnitZ())) * Eigen::Vector3d((ranges[i]) / 1000.0, 0, 0.0);
+        Eigen::Vector3d pt1 = Eigen::Quaterniond(Eigen::AngleAxisd(angle + ((i+1) * angleStep), Eigen::Vector3d::UnitZ())) * Eigen::Vector3d((ranges[i+1]) / 1000.0, 0, 0.0);
+
+        /**
+         * Filter occlusion points and points with values equal the max range
+         */
+        if (abs(pt0[0] - pt1[0]) < 0.01 && (pt0[0] <  limit[0] && pt1[0] < limit[0])) {
+            vertices->push_back(osg::Vec3f(pt0[0], pt0[1], pt0[2]));
+            vertices->push_back(osg::Vec3f(pt1[0], pt1[1], pt1[2]));
+        }
     }
 
-    for (int i = 0; i < vertices->size(); i++) colors->push_back(osg::Vec4(0.1, 0.9, 0.1, 1.0));
-
-    primitiveSet->set(osg::PrimitiveSet::LINE_STRIP, 0, vertices->size());
+    //update line vertices
+    primitiveSet->set(osg::PrimitiveSet::LINES, 0, vertices->size());
     geometry->setVertexArray(vertices.get());
 
-    geometry->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
+    //update line colors
+    geometry->setColorBinding(osg::Geometry::BIND_OVERALL);
     geometry->setColorArray(colors.get());
 }
 
 void LaserLine::updateDataIntern(base::samples::LaserScan const& value)
 {
-    p->data = value;
+    data = value;
 }
 
 //Macro that makes this plugin loadable in ruby, this is optional.
