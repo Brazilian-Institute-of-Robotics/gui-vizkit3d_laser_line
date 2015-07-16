@@ -10,6 +10,7 @@
 #include <osg/Geometry>
 #include <osg/Hint>
 #include <osg/LineWidth>
+#include <osg/Material>
 
 namespace vizkit3d
 {
@@ -29,8 +30,17 @@ namespace vizkit3d
         virtual osg::ref_ptr<osg::Node> createMainNode();
         virtual void updateMainNode(osg::Node* node);
         virtual void updateDataIntern(base::samples::LaserScan const& plan);
-        
+
+        bool isShowRange() const;
+        void setShowRange(bool showRange);
+
+        QColor getColor();
+        void setColor(QColor color);
+
     private:
+
+        Q_PROPERTY( bool show_range READ isShowRange WRITE setShowRange)
+        Q_PROPERTY( QColor color READ getColor WRITE setColor)
 
         //laser scan data
         base::samples::LaserScan data;
@@ -54,6 +64,13 @@ namespace vizkit3d
          * PrimitiveSet to set up the draw array
          */
         osg::ref_ptr<osg::DrawArrays> primitiveSet;
+
+        /**
+         * change the laser line drawer to change the range
+         */
+        bool showRange;
+
+        QColor color;
 
     };
 }
