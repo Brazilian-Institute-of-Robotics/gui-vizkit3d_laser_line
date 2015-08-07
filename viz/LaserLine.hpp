@@ -5,12 +5,9 @@
 #include <vizkit3d/Vizkit3DPlugin.hpp>
 #include <base/samples/LaserScan.hpp>
 #include <osg/Array>
-#include <osg/BlendFunc>
 #include <osg/Geode>
-#include <osg/Geometry>
-#include <osg/Hint>
-#include <osg/LineWidth>
-#include <osg/Material>
+#include <QStringList>
+#include "LineHolder.hpp"
 
 namespace vizkit3d
 {
@@ -19,12 +16,20 @@ namespace vizkit3d
         , boost::noncopyable
     {
     Q_OBJECT
-    public:
-        LaserLine();
-        ~LaserLine();
 
     Q_INVOKABLE void updateData(base::samples::LaserScan const &sample)
     {vizkit3d::Vizkit3DPlugin<base::samples::LaserScan>::updateData(sample);}
+
+    private:
+    Q_PROPERTY( QColor color READ getColor WRITE setColor )
+    Q_PROPERTY( bool show_range READ isShowRange WRITE setShowRange )
+    Q_PROPERTY( double line_width READ getLineWidth WRITE setLineWidth )
+    Q_PROPERTY( bool show_all_lines READ getShowAllLines WRITE setShowAllLines )
+
+
+    public:
+        LaserLine();
+        ~LaserLine();
 
     protected:
         virtual osg::ref_ptr<osg::Node> createMainNode();
@@ -37,13 +42,15 @@ namespace vizkit3d
         QColor getColor();
         void setColor(QColor color);
 
+        double getLineWidth();
+        void setLineWidth(double lineWidth);
+
+        bool getShowAllLines();
+        void setShowAllLines(bool value);
+
     private:
 
-        Q_PROPERTY( bool show_range READ isShowRange WRITE setShowRange)
-        Q_PROPERTY( QColor color READ getColor WRITE setColor)
-
-        //laser scan data
-        base::samples::LaserScan data;
+        bool loadLineVerticesFromLaserScan(base::samples::LaserScan const& laserScan);
 
         /**
          * Store the vertices used to draw the primitives
@@ -51,27 +58,19 @@ namespace vizkit3d
         osg::ref_ptr<osg::Vec3Array> vertices;
 
         /**
-         * Store the colors of the primitive
+         * Used to manage the line setup and creation
          */
-        osg::ref_ptr<osg::Vec4Array> colors;
+        vizkit3d_laser_line::LineHolder *lineHolder;
 
         /**
-         * Used to draw a primitive (QUAD, TRIANGLE, LINE)
+         * Store the line color
          */
-        osg::ref_ptr<osg::Geometry> geometry;
+        osg::Vec4 color;
 
         /**
-         * PrimitiveSet to set up the draw array
+         * if true, show all lines
          */
-        osg::ref_ptr<osg::DrawArrays> primitiveSet;
-
-        /**
-         * change the laser line drawer to change the range
-         */
-        bool showRange;
-
-        QColor color;
-
+        bool showAllLines;
     };
 }
 #endif
