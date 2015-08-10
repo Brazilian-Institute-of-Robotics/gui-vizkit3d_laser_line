@@ -51,12 +51,10 @@ void LineHolder::setupStateSet(osg::StateSet *stateset)
 {
     stateset->setAttribute(new osg::LineWidth(lineWidth), osg::StateAttribute::ON);
     stateset->setMode(GL_LINE_SMOOTH, osg::StateAttribute::ON);
-    stateset->setMode(GL_BLEND, osg::StateAttribute::ON);
-    stateset->setMode(GL_LINE_SMOOTH_HINT, GL_NICEST);
     stateset->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
 
     // Add a blend function.
-    osg::ref_ptr<osg::BlendFunc> blend ( new osg::BlendFunc ( GL_ONE, GL_ONE) );
+    osg::ref_ptr<osg::BlendFunc> blend ( new osg::BlendFunc ( osg::BlendFunc::ONE, osg::BlendFunc::ONE) );
     stateset->setAttributeAndModes ( blend.get(), osg::StateAttribute::ON );
 
     // Set the hint.

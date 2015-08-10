@@ -4,6 +4,9 @@
 using namespace vizkit3d;
 using namespace vizkit3d_laser_line;
 
+
+#define milimeters_to_meters(x) (x) / 1000.0
+
 LaserLine::LaserLine()
 {
     color = osg::Vec4(0.0, 1.0, 0.0, 0.0);
@@ -77,44 +80,72 @@ void LaserLine::setShowAllLines(bool value)
     showAllLines = value;
 }
 
-bool LaserLine::loadLineVerticesFromLaserScan(base::samples::LaserScan const& laserScan)
+osg::ref_ptr<osg::Vec3Array> LaserLine::computePoints(base::samples::LaserScan const& laserScan, std::vector<bool>& validity)
 {
+    osg::Vec3Array *points = new osg::Vec3Array();
+
     std::vector<uint32_t> ranges = laserScan.ranges;
 
     double angle = laserScan.start_angle; //start angle
     double angleStep = laserScan.angular_resolution; //angle step
-    double maxRange = laserScan.maxRange / 1000.0; //convert millimeters to meters
 
-    vertices->clear();
+    for (int i = 0; i < ranges.size(); i++) {
 
-    if (!ranges.empty() && ranges.size() >= 2) {
+        //compute the angle rotation
+        Eigen::Quaterniond rot = Eigen::Quaterniond(Eigen::AngleAxisd(angle + (i * angleStep), Eigen::Vector3d::UnitZ()));
+        Eigen::Vector3d pt =  rot * Eigen::Vector3d(milimeters_to_meters(ranges[i]), 0.0, 0.0);
 
+        //laser line point
+        points->push_back(osg::Vec3f(pt[0], pt[1], pt[2]));
 
-        for (int i = 0; i < ranges.size()-1; i++) {
-
-            //get the max range point
-            Eigen::Vector3d limit = Eigen::Quaterniond(Eigen::AngleAxisd(angle + (i * angleStep), Eigen::Vector3d::UnitZ())) * Eigen::Vector3d(maxRange, 0, 0.0);
-
-            /**
-             * get the start and end line points
-             * compute the rotation using the angle
-             */
-            Eigen::Vector3d pt0 = Eigen::Quaterniond(Eigen::AngleAxisd(angle + (i * angleStep), Eigen::Vector3d::UnitZ())) * Eigen::Vector3d((ranges[i]) / 1000.0, 0, 0.0);
-            Eigen::Vector3d pt1 = Eigen::Quaterniond(Eigen::AngleAxisd(angle + ((i+1) * angleStep), Eigen::Vector3d::UnitZ())) * Eigen::Vector3d((ranges[i+1]) / 1000.0, 0, 0.0);
-
-            /**
-             * Filter occlusion points and points with values equal the max range
-             */
-            if ((showAllLines) || (abs(pt0[0] - pt1[0]) < 0.1 && (pt0[0] <  limit[0] && pt1[0] < limit[0]))) {
-                vertices->push_back(osg::Vec3f(pt0[0], pt0[1], pt0[2]));
-                vertices->push_back(osg::Vec3f(pt1[0], pt1[1], pt1[2]));
-            }
-        }
-
-        return true;
+        //check if range is valid
+        validity.push_back(laserScan.isRangeValid(ranges[i]));
     }
 
-    return false;
+    return points;
+}
+
+void LaserLine::computeLines(osg::Vec3Array& lineVertices, osg::Vec3Array const& points, std::vector<bool> const& validity) {
+
+    const double maxDt = 2.5;
+
+    lineVertices.clear();
+
+    for (int i = 0; i < points.size()-1; i++) {
+
+        if (!validity[i+0] || !validity[i+1]){
+            continue;
+        }
+
+        //compute Euclidean distance between two points
+        double dtx =  fabs(points[i+0][0] - points[i+1][0]);
+        double dty =  fabs(points[i+0][1] - points[i+1][1]);
+        double dtz =  fabs(points[i+0][2] - points[i+1][2]);
+        double dt = sqrt(dtx * dtx + dty * dty + dtz * dtz);
+
+        //if the distance is bigger than max distance, then this line is dropped
+        if (dt > maxDt) {
+            continue;
+        }
+
+        lineVertices.push_back(points[i+0]);
+        lineVertices.push_back(points[i+1]);
+    }
+
+}
+
+bool LaserLine::loadLineVerticesFromLaserScan(base::samples::LaserScan const& laserScan)
+{
+    if (laserScan.ranges.empty() || laserScan.ranges.size() < 2) {
+        return false;
+    }
+
+    std::vector<bool> validity;
+    osg::ref_ptr<osg::Vec3Array> points = computePoints(laserScan, validity);
+
+    computeLines(*vertices, *points, validity);
+
+    return true;
 }
 
 
