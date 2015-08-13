@@ -117,13 +117,9 @@ void LaserLine::computeLines(osg::Vec3Array& lineVertices, osg::Vec3Array const&
             continue;
         }
 
-        //compute Euclidean distance between two points
-        double dtx =  fabs(points[i+0][0] - points[i+1][0]);
-        double dty =  fabs(points[i+0][1] - points[i+1][1]);
-        double dtz =  fabs(points[i+0][2] - points[i+1][2]);
-        double dt = sqrt(dtx * dtx + dty * dty + dtz * dtz);
-
         //if the distance is bigger than max distance, then this line is dropped
+        double dt = (points[i+0] - points[i+1]).length();
+
         if (dt > maxDt) {
             continue;
         }
