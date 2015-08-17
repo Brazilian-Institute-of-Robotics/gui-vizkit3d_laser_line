@@ -5,12 +5,11 @@ using namespace vizkit3d;
 using namespace vizkit3d_laser_line;
 
 
-static inline double milimeters_to_meters(x)  { return x / 1000.0; }
+static inline double milimeters_to_meters(double x)  { return x / 1000.0; }
 
 LaserLine::LaserLine()
     : color(osg::Vec4(0.0, 1.0, 0.0, 0.0))
     , vertices(new osg::Vec3Array())
-    , lineHolder(new LineHolder())
     , showAllLines(false)
 {
 }
@@ -21,12 +20,12 @@ LaserLine::~LaserLine()
 
 osg::ref_ptr<osg::Node> LaserLine::createMainNode()
 {
-    return lineHolder->getRootNode();
+    return lineHolder.getRootNode();
 }
 
 void LaserLine::updateMainNode (osg::Node* node)
 {
-    lineHolder->update(vertices, color);
+    lineHolder.update(vertices, color);
 }
 
 void LaserLine::updateDataIntern(base::samples::LaserScan const& value)
@@ -34,13 +33,13 @@ void LaserLine::updateDataIntern(base::samples::LaserScan const& value)
     loadLineVerticesFromLaserScan(value);
 }
 
-bool LaserLine::isShowRange() const
+bool LaserLine::isShowRange()
 {
-    return lineHolder->isShowRange();
+    return lineHolder.isShowRange();
 }
 void LaserLine::setShowRange(bool value)
 {
-    lineHolder->setShowRange(value);
+    lineHolder.setShowRange(value);
 }
 
 QColor LaserLine::getColor()
@@ -62,12 +61,12 @@ void LaserLine::setColor(QColor value)
 
 double LaserLine::getLineWidth()
 {
-    return (double)lineHolder->getLineWidth();
+    return (double)lineHolder.getLineWidth();
 }
 
 void LaserLine::setLineWidth(double lineWidth)
 {
-    lineHolder->setLineWidth((float)lineWidth);
+    lineHolder.setLineWidth((float)lineWidth);
 }
 
 bool LaserLine::getShowAllLines()

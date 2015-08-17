@@ -33,7 +33,7 @@ public:
     LaserLine();
     ~LaserLine();
 
-    bool isShowRange() const;
+    bool isShowRange();
     void setShowRange(bool showRange);
 
     QColor getColor();
@@ -72,7 +72,7 @@ private:
     /**
      * Used to manage the line setup and creation
      */
-    vizkit3d_laser_line::LineHolder *lineHolder;
+    vizkit3d_laser_line::LineHolder lineHolder;
 
     /**
      * Store the line color
