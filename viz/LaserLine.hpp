@@ -9,24 +9,25 @@
 #include <QStringList>
 #include "LineHolder.hpp"
 
-namespace vizkit3d
-{
+namespace vizkit3d {
 
 class LaserLine
     : public vizkit3d::Vizkit3DPlugin<base::samples::LaserScan>
     , boost::noncopyable
 {
-Q_OBJECT
+    Q_OBJECT
 
 public:
-Q_INVOKABLE void updateData(base::samples::LaserScan const &sample)
-{vizkit3d::Vizkit3DPlugin<base::samples::LaserScan>::updateData(sample);}
+    Q_INVOKABLE
+    void updateData(base::samples::LaserScan const &sample) {
+        vizkit3d::Vizkit3DPlugin<base::samples::LaserScan>::updateData(sample);
+    }
 
 private:
-Q_PROPERTY( QColor color READ getColor WRITE setColor )
-Q_PROPERTY( bool show_range READ isShowRange WRITE setShowRange )
-Q_PROPERTY( double line_width READ getLineWidth WRITE setLineWidth )
-Q_PROPERTY( bool show_all_lines READ getShowAllLines WRITE setShowAllLines )
+    Q_PROPERTY( QColor color READ getColor WRITE setColor )
+    Q_PROPERTY( bool show_range READ isShowRange WRITE setShowRange )
+    Q_PROPERTY( double line_width READ getLineWidth WRITE setLineWidth )
+    Q_PROPERTY( bool show_all_lines READ getShowAllLines WRITE setShowAllLines )
 
 public:
     LaserLine();
@@ -62,7 +63,6 @@ private:
      * compute the lines
      */
     void computeLines(osg::Vec3Array& lineVertices, osg::Vec3Array const& points, std::vector<bool> const& validity);
-
 
     /**
      * Store the vertices used to draw the primitives

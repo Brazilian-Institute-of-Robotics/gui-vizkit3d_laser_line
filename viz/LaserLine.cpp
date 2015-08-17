@@ -5,14 +5,14 @@ using namespace vizkit3d;
 using namespace vizkit3d_laser_line;
 
 
-#define milimeters_to_meters(x) (x) / 1000.0
+static inline double milimeters_to_meters(x)  { return x / 1000.0; }
 
 LaserLine::LaserLine()
+    : color(osg::Vec4(0.0, 1.0, 0.0, 0.0))
+    , vertices(new osg::Vec3Array())
+    , lineHolder(new LineHolder())
+    , showAllLines(false)
 {
-    color = osg::Vec4(0.0, 1.0, 0.0, 0.0);
-    vertices = new osg::Vec3Array();
-    lineHolder = new LineHolder();
-    showAllLines = false;
 }
 
 LaserLine::~LaserLine()
