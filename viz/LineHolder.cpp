@@ -54,12 +54,12 @@ void LineHolder::setupStateSet(osg::StateSet *stateset)
     stateset->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
 
     // Add a blend function.
-    osg::ref_ptr<osg::BlendFunc> blend ( new osg::BlendFunc ( osg::BlendFunc::ONE, osg::BlendFunc::ONE) );
-    stateset->setAttributeAndModes ( blend.get(), osg::StateAttribute::ON );
+    osg::BlendFunc *blend = new osg::BlendFunc ( osg::BlendFunc::ONE, osg::BlendFunc::ONE);
+    stateset->setAttributeAndModes ( blend, osg::StateAttribute::ON );
 
     // Set the hint.
-    osg::ref_ptr<osg::Hint> hint ( new osg::Hint ( GL_LINE_SMOOTH_HINT, GL_NICEST ) );
-    stateset->setAttributeAndModes ( hint.get(), osg::StateAttribute::ON );
+    osg::ref_ptr<osg::Hint> hint = new osg::Hint ( GL_LINE_SMOOTH_HINT, GL_NICEST );
+    stateset->setAttributeAndModes ( hint, osg::StateAttribute::ON );
 }
 
 osg::ref_ptr<osg::Node> LineHolder::getRootNode()
